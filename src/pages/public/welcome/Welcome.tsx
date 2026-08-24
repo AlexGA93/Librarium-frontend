@@ -1,5 +1,5 @@
-import LibrariumImg from "@/assets/imgs/librarium_welcome.svg"
-import { Button } from "@/components/ui/button"
+import LibrariumImg from "@/assets/imgs/librarium_welcome.svg";
+import { Button } from "@/components/ui/button";
 import { MoveRight } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +12,7 @@ export const Welcome = () => {
   };
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-3 sm:px-6">
+    <section className="animate__animated animate__fadeIn mx-auto w-full max-w-6xl px-3 sm:px-6">
       {/* subtitulo superior */}
       <div className="subtitle">
         <h6 className='text-xs text-brand-coral'>BIENVENIDO A LIBRARIUM</h6>

@@ -1,11 +1,43 @@
-import { BookOpenText } from 'lucide-react'
+import { BookOpenText, Lock, LockOpen } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import { type ChangeEvent, useState } from 'react'
+
+interface Login {
+  email: string;
+  password: string;
+}
 
 export const Login = () => {
+  const [login, setLogin] = useState<Login>({email: "", password: ""});
+  const [showPass,setShowPass] = useState<boolean>(false);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target
+
+    setLogin((currentLogin) => ({
+      ...currentLogin,
+      [name]: value,
+    }))
+  };
+
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log(login);
+    // TODO: dispatch de la accion de login para el estado global de usuario
+  };
+
+  const toggleShowPass = () => {
+    setShowPass(prev => !prev);
+  };
+
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-md items-center justify-center px-3 sm:px-6">
+    <section className="animate__animated animate__fadeIn mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-md items-center justify-center px-3 sm:px-6">
       <div className="flex w-full flex-col items-center text-center">
         <div className="flex size-16 items-center justify-center rounded-2xl bg-black">
           <BookOpenText className="size-8 text-white" aria-hidden="true" />
@@ -16,10 +48,44 @@ export const Login = () => {
           <p className="text-muted-foreground">Accede a tu santuario personal</p>
         </div>
 
-        <Button className="mt-8 h-11 w-full rounded-xl" size="lg">
-          Inicio de Sesion
+        <div className="mt-6 w-ful">
+          <form onSubmit={handleSubmit}>
+            <Input
+              className='my-2 bg-gray-100'
+              name='email'
+              type='email'
+              placeholder='Email...'
+              value={login.email}
+              onChange={handleChange}
+              required
+            />
+            <Field>
+              <ButtonGroup>
+                <Input
+                  id="input-button-group"
+                  className='bg-gray-100'
+                  name='password'
+                  type={showPass ? 'text':'password'}
+                  placeholder='Clave...'
+                  value={login.password}
+                  onChange={handleChange}
+                  required
+                />
+                <Button type='button' variant='outline' onClick={toggleShowPass}>
+                  {
+                    showPass ? (<LockOpen />) : (<Lock />)
+                  }
+                  
+                </Button>
+              </ButtonGroup>
+            </Field>
+            
+             <Button type='submit' className="mt-8 h-11 w-full rounded-xl" size="lg">
+              Inicio de Sesion
+              <Spinner />
         </Button>
-
+          </form>
+        </div>
         <p className="mt-6 text-sm text-muted-foreground">
           No tienes una cuenta?{' '}
           <Link className="font-medium text-foreground underline underline-offset-4" to="/register">
@@ -27,9 +93,9 @@ export const Login = () => {
           </Link>
         </p>
         <p className="mt-6 text-sm text-muted-foreground">
-          Volver a Inicio{' '}
+          Volver al{' '}
           <Link className="font-medium text-foreground underline underline-offset-4" to="/">
-            Registrate
+            Inicio
           </Link>
         </p>
       </div>
