@@ -1,7 +1,6 @@
-import React from 'react'
 
 export const Collection = () => {
   return (
-    <div>Collection</div>
+    <div className="animate__animated animate__fadeIn">Collection</div>
   )
 }
