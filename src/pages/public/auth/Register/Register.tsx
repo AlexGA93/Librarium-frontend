@@ -1,4 +1,3 @@
-import { registerAction } from "@/actions/authActions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -6,6 +5,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/useAuth";
+import { registerAction } from "@/pages/public/auth/actions/authActions";
 import type { RegisterForm } from "@/types/auth.interfaces";
 import { constants } from "@/utils/constants";
 import axios from "axios";

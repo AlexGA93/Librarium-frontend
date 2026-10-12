@@ -1,7 +1,6 @@
 import { AlertCircleIcon, BookOpenText, Lock, LockOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { loginAction } from "@/actions/authActions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -9,11 +8,12 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/useAuth";
-import type { LoginForm } from "@/types/auth.interfaces";
+import { loginAction } from "@/pages/public/auth/actions/authActions";
+import type { LoginForm } from "@/types/login.interface";
 import { constants } from "@/utils/constants";
-import axios from "axios";
 import { type ChangeEvent, useState } from "react";
 import { toast } from "sonner";
+import { userDataAction } from "../../../private/actions/user.actions";
 
 export const Login = () => {
   // hooks
@@ -38,57 +38,76 @@ export const Login = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // * Fase 1: iniciar el estado de carga y limpiar errores anteriores.
+    dispatch({ type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_START });
+
     try {
-      // despachamos la accion de LOGIN_START para reaccionar correctamente al proceso
-      // loading: true
-      // error: null
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_START,
-      });
-
-      // realizamos peticion
-      const result = await loginAction(login);
-
-      // diferenciamos el estado de error del correcto
-      if (!result.ok) {
-        // despachamos accion de LOGIN_ERROR
+      // * Fase 2: enviar las credenciales al backend.
+      const loginResult = await loginAction(login);
+      
+      // * Fase 3: detener el flujo si el backend rechaza el inicio de sesión.
+      if (!loginResult.ok) {
         dispatch({
           type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-          payload: result.message,
+          payload: loginResult.message,
         });
-      } else {
-        // con los datos de la peticion y todo en orden, realizamos accion de LOGIN_SUCCESS
-        // loading: false,
-        // user: action.payload.user,
-        // token: action.payload.token,
-        // isAuthenticated: true,
-        // error: null,
+        return;
+      }
+
+      // * Fase 4: comprobar que la respuesta incluya el token necesario.
+      const token = loginResult.data.token;
+      
+
+      if (!token) {
         dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS,
-          payload: result.data,
+          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
+          payload: "El servidor no devolvió un token",
         });
-
-        toast.success("Usuario registrado correctamente");
-
-        // * redireccionamos a la pagina deseada
-        navigate("/private");
+        return;
       }
-    } catch (error: unknown) {
-      let message = "No se pudo iniciar sesion";
+      
+      // * Fase 5: validar el token y obtener el perfil del usuario autenticado.
+      const userResult = await userDataAction(token);
 
-      if (axios.isAxiosError(error)) {
-        message = error.response?.data.message ?? message;
+      
+
+      if (!userResult.ok) {
+        dispatch({
+          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
+          payload: userResult.message,
+        });
+        localStorage.removeItem('token');
+        return;
       }
 
+      // * Fase 6: persistir el token tras confirmar que el perfil se obtuvo correctamente.
+      localStorage.setItem("token", token);
+
+      
+
+      // * Fase 7: guardar token y usuario en el estado global.
+      dispatch({
+        type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS,
+        payload: { token, user: userResult.data.data },
+      });
+
+      // * Fase 8: informar del éxito y navegar al área privada.
+      toast.success("Sesión iniciada correctamente");
+      navigate("/private");
+    } catch {
+      // * Fase 9: limpiar el token si ocurre un error inesperado.
+      try {
+        localStorage.removeItem("token");
+      } catch {
+        // El navegador puede bloquear el acceso al almacenamiento local.
+      }
+
+      // * Fase 10: reflejar el error y finalizar el estado de carga.
       dispatch({
         type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-        payload: message,
+        payload: "No se pudo completar el inicio de sesión",
       });
     }
-  };
-
-  const toggleShowPass = () => {
-    setShowPass((prev) => !prev);
   };
 
   return (
@@ -133,7 +152,7 @@ export const Login = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={toggleShowPass}
+                  onClick={() => setShowPass((prev) => !prev)}
                 >
                   {showPass ? <LockOpen /> : <Lock />}
                 </Button>

@@ -60,10 +60,70 @@ export const authReducer = (state: AuthInitialState, action: AuthAction) => {
         loading: false,
         error: action.payload,
       };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_START:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_SUCCESS:
+      return {
+        ...state,
+        user: action.payload,
+        loading: false,
+        error: null,
+      };
     case constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_UPDATE:
       return {
         ...state,
         user: action.payload,
+        loading: false,
+        error: null,
+      };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_START:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_SUCCESS:
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        loading: false,
+        error: null,
+        authReady: true,
+      };
+    case constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_RESTORED:
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token,
+        isAuthenticated: true,
+        authReady: true,
+      };
+
+    case constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED:
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        authReady: true,
       };
 
     default:

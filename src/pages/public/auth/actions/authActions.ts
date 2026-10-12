@@ -1,13 +1,7 @@
 import { api } from "@/api/axios";
-import type {
-    AuthApiErrorResponse,
-    LoginActionResult,
-    LoginForm,
-    LoginResponse,
-    RegisterActionResult,
-    RegisterForm,
-    RegisterResponse,
-} from "@/types/auth.interfaces";
+import type { AuthApiErrorResponse } from "@/types/auth.interfaces";
+import type { LoginActionResult, LoginForm, LoginResponse } from "@/types/login.interface";
+import type { RegisterActionResult, RegisterForm, RegisterResponse } from "@/types/register.interface";
 import axios from "axios";
 
 export const loginAction = async (
@@ -15,9 +9,6 @@ export const loginAction = async (
 ): Promise<LoginActionResult> => {
   try {
     const { data } = await api.post<LoginResponse>(`/auth/login`, loginForm);
-
-    // transformamos los datos para coincidir con la forma LoginResponse
-    localStorage.setItem("token", data.token);
 
     return { ok: true, data };
   } catch (error: unknown) {
@@ -80,7 +71,6 @@ export const registerAction = async (
     return { ok: false, message, statusCode };
   }
 };
-
 
 const handleErrorDetails = (errorData?: AuthApiErrorResponse): string => {
   return errorData?.details?.join(", ") ?? "";
