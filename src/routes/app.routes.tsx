@@ -1,11 +1,11 @@
-import { lazy } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Collection } from '@/pages/private/Collection/Collection';
 import { PrivateLayout } from '@/pages/private/layout/PrivateLayout';
 import { Login } from '@/pages/public/auth/Login/Login';
 import { Register } from '@/pages/public/auth/Register/Register';
 import { PublicLayout } from '@/pages/public/layout/PublicLayout';
 import { Welcome } from '@/pages/public/welcome/Welcome';
+import { lazy } from 'react';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // * lazy load
 const Profile = lazy(() => import("@/pages/private/Profile/Profile"));
@@ -25,12 +25,12 @@ export const routes = createBrowserRouter([
             },
             // auth/login
             {
-                path: '/login',
+                path: '/auth/login',
                 element: <Login />
             },
             // auth/register
             {
-                path: '/register',
+                path: '/auth/register',
                 element: <Register />
             },
         ]
@@ -48,7 +48,7 @@ export const routes = createBrowserRouter([
             },
             // perfil
             {
-                path: 'profile/:name',
+                path: 'profile',
                 element: <Profile />
             },
             // book

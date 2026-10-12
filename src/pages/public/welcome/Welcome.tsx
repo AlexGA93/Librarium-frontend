@@ -7,8 +7,8 @@ export const Welcome = () => {
 
   const navigate = useNavigate();
   
-  const handleRedirect = (flag:string) => {
-    navigate(`/${flag}`);
+  const handleRedirectAuth = (flag:string) => {
+    navigate(`/auth/${flag}`);
   };
 
   return (
@@ -34,12 +34,12 @@ lector moderno. Una gestión local impecable para
 mentes curiosas.</p>
           </div>
           {/* botones */}
-          <div className="mt-9 flex flex-row flex-wrap justify-between">
-            <Button className="flex gap-2 p-5 rounded-3xl" onClick={() => handleRedirect("login")}>
+          <div className="mt-9 flex flex-row flex-wrap">
+            <Button className="bg-brand-coral flex gap-2 p-5 rounded-3xl mx-2" onClick={() => handleRedirectAuth("login")}>
               Acceder
               <MoveRight />  
             </Button>
-            <Button className="flex gap-2 p-5 rounded-3xl"onClick={() => handleRedirect("register")}>
+            <Button className="bg-brand-coral flex gap-2 p-5 rounded-3xl mx-2"onClick={() => handleRedirectAuth("register")}>
               Registrarse
               <MoveRight />  
             </Button>

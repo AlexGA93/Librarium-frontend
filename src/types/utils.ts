@@ -1,0 +1,16 @@
+export interface Constants {
+  AUTH: {
+    REDUCERS: {
+      ACTION_TYPES: {
+        LOGIN_START: "LOGIN_START";
+        LOGIN_SUCCESS: "LOGIN_SUCCESS";
+        LOGIN_ERROR: "LOGIN_ERROR";
+        LOGOUT: "LOGOUT";
+        REGISTER_START: "REGISTER_START";
+        REGISTER_SUCCESS: "REGISTER_SUCCESS";
+        REGISTER_ERROR: "REGISTER_ERROR";
+        PROFILE_UPDATE: "PROFILE_UPDATE";
+      };
+    };
+  };
+}
