@@ -69,3 +69,8 @@ export type AuthAction =
   state: AuthInitialState;
   dispatch: Dispatch<AuthAction>;
 }
+
+export interface CheckStatusResponse {
+  user: User;
+  token: string;
+}

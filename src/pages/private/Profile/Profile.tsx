@@ -11,8 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/pages/public/hooks/useAuth";
 import type { User } from "@/types/user.interface";
 import { constants } from "@/utils/constants";
 import { Lock, LockOpen, LogOut, Pencil, Save, Trash, X } from "lucide-react";

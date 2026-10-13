@@ -41,7 +41,6 @@ export const registerAction = async (
       "/auth/register",
       registerForm,
     );
-    console.log({ data });
 
     return { ok: true, data };
   } catch (error: unknown) {

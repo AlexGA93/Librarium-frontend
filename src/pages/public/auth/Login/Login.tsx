@@ -7,13 +7,13 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/hooks/useAuth";
-import { loginAction } from "@/pages/public/auth/actions/authActions";
+import { useAuth } from "@/pages/public/hooks/useAuth";
 import type { LoginForm } from "@/types/login.interface";
 import { constants } from "@/utils/constants";
 import { type ChangeEvent, useState } from "react";
 import { toast } from "sonner";
 import { userDataAction } from "../../../private/actions/user.actions";
+import { useLogin } from "../../hooks/useLogin";
 
 export const Login = () => {
   // hooks
@@ -25,6 +25,7 @@ export const Login = () => {
   const [showPass, setShowPass] = useState<boolean>(false);
   // custom hooks
   const { state, dispatch } = useAuth();
+  const { mutateAsync: submitLogin, isPending } = useLogin();
   // methods
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -42,8 +43,10 @@ export const Login = () => {
     dispatch({ type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_START });
 
     try {
+      // *: peticion mediante tanstack query (y custom hook)
       // * Fase 2: enviar las credenciales al backend.
-      const loginResult = await loginAction(login);
+      // const loginResult = await loginAction(login);
+      const loginResult = await submitLogin(login); 
       
       // * Fase 3: detener el flujo si el backend rechaza el inicio de sesión.
       if (!loginResult.ok) {
@@ -83,12 +86,10 @@ export const Login = () => {
       // * Fase 6: persistir el token tras confirmar que el perfil se obtuvo correctamente.
       localStorage.setItem("token", token);
 
-      
-
       // * Fase 7: guardar token y usuario en el estado global.
       dispatch({
         type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS,
-        payload: { token, user: userResult.data.data },
+        payload: { token, user: userResult.data.data! },
       });
 
       // * Fase 8: informar del éxito y navegar al área privada.
@@ -163,9 +164,9 @@ export const Login = () => {
               type="submit"
               className="bg-brand-coral mt-8 h-11 w-full rounded-xl"
               size="lg"
-              disabled={state.loading}
+              disabled={isPending}
             >
-              {state.loading ? <Spinner /> : "Inicio de Sesion"}
+              {isPending ? <Spinner /> : "Inicio de Sesion"}
             </Button>
             {state.error && (
               <Alert variant="destructive" className="max-w-md my-3">

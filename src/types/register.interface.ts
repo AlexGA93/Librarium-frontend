@@ -4,6 +4,10 @@ export interface RegisterForm {
   password: string;
 }
 
+export interface RegisterFormValues extends RegisterForm {
+  password2: string;
+}
+
 export interface RegisterResponse{
   code: number;
   message: string;

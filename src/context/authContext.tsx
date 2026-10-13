@@ -1,15 +1,15 @@
 import { userDataAction } from "@/pages/private/actions/user.actions";
 import { authReducer } from "@/reducers/authReducer";
 import type {
-    AuthContextValue,
-    AuthInitialState,
+  AuthContextValue,
+  AuthInitialState,
 } from "@/types/auth.interfaces";
 import { constants } from "@/utils/constants";
 import {
-    createContext,
-    useEffect,
-    useReducer,
-    type PropsWithChildren,
+  createContext,
+  useEffect,
+  useReducer,
+  type PropsWithChildren,
 } from "react";
 
 // initial state
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_RESTORED,
         payload: {
           token,
-          user: result.data.data,
+          user: result.data.data!,
         },
       });
     };
