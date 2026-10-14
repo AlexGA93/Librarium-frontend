@@ -1,30 +1,36 @@
-import { registerAction } from "@/actions/authActions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/hooks/useAuth";
-import type { RegisterForm } from "@/types/auth.interfaces";
+import { useAuth } from "@/pages/public/hooks/useAuth";
+import type {
+  RegisterForm,
+  RegisterFormValues
+} from "@/types/register.interface";
 import { constants } from "@/utils/constants";
-import axios from "axios";
+import { cn } from "cn";
 import { AlertCircleIcon, BookOpenText, Lock, LockOpen } from "lucide-react";
-import React, { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useRegister } from "../../hooks/useRegister";
 
 export const Register = () => {
   const navigate = useNavigate();
-  const [register, setRegister] = useState<RegisterForm>({
+  const [isError, setIsError] = useState<boolean>(false);
+  const [register, setRegister] = useState<RegisterFormValues>({
     name: "",
     email: "",
     password: "",
+    password2: "",
   });
   const [showPass, setShowPass] = useState<boolean>(false);
 
   // custom hooks
-  const { state, dispatch } = useAuth();
+  const { state, dispatch } = useAuth(); // * estado global
+  const { mutateAsync: submitRegister, isPending } = useRegister(); // * peticion mediante accion
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -37,44 +43,31 @@ export const Register = () => {
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(register);
-    try {
-      // despachamos la accion de REGISTER_START para reaccionar correctamente al proceso
-      // loading: true
-      // error: null
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_START,
-      });
 
-      // realizamos peticion
-      const result = await registerAction(register);
-
-      if (!result.ok) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR,
-          payload: result.message,
-        });
-      } else {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_SUCCESS,
-        });
-
-        toast.success("Usuario registrado correctamente");
-
-        navigate("/auth/login");
-      }
-    } catch (error: unknown) {
-      let message = "No se pudo iniciar sesion";
-
-      if (axios.isAxiosError(error)) {
-        message = error.response?.data.message ?? message;
-      }
-
+    // * validamos que las claves sean iguales antes de hacer nada.
+    if (register.password !== register.password2) {
+      setIsError(true);
       dispatch({
         type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR,
-        payload: message,
+        payload: "Las claves no coinciden",
       });
+      return;
     }
+
+    setIsError(false);
+
+    const payload: RegisterForm = {
+      name: register.name,
+      email: register.email,
+      password: register.password,
+    };
+
+    submitRegister(payload, {
+      onSuccess: () => {
+        toast.success("Usuario registrado correctamente");
+        navigate("/auth/login");
+      },
+    });
   };
 
   const toggleShowPass = () => {
@@ -94,10 +87,10 @@ export const Register = () => {
           <p className="text-muted-foreground">Comienza tu coleccion</p>
         </div>
 
-        <div className="mt-6 w-ful">
-          <form onSubmit={handleSubmit}>
+        <div className="mt-6 w-full">
+          <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit}>
             <Input
-              className="my-2 bg-gray-100"
+              className="bg-gray-50"
               name="name"
               type="text"
               placeholder="Usuario..."
@@ -106,7 +99,7 @@ export const Register = () => {
               required
             />
             <Input
-              className="my-2 bg-gray-100"
+              className="bg-gray-50"
               name="email"
               type="email"
               placeholder="Email..."
@@ -118,7 +111,7 @@ export const Register = () => {
               <ButtonGroup>
                 <Input
                   id="input-button-group"
-                  className="bg-gray-100"
+                  className={cn("bg-gray-50", isError && "border-red-500")}
                   name="password"
                   type={showPass ? "text" : "password"}
                   placeholder="Clave..."
@@ -135,19 +128,40 @@ export const Register = () => {
                 </Button>
               </ButtonGroup>
             </Field>
+            <Field>
+              <ButtonGroup>
+                <Input
+                  id="input-button-group"
+                  className={cn("bg-gray-50", isError && "border-red-500")}
+                  name="password2"
+                  type={showPass ? "text" : "password"}
+                  placeholder="Repetir Clave..."
+                  value={register.password2}
+                  onChange={handleChange}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={toggleShowPass}
+                >
+                  {showPass ? <LockOpen /> : <Lock />}
+                </Button>
+              </ButtonGroup>
+            </Field>
 
             <Button
               type="submit"
-              className="bg-brand-coral mt-8 h-11 w-full rounded-xl"
+              className="bg-brand-coral h-11 w-full rounded-xl"
               size="lg"
-              disabled={state.loading}
+              disabled={isPending}
             >
-              {state.loading ? <Spinner /> : "Registrarse"}
+              {isPending ? <Spinner /> : "Registrarse"}
             </Button>
             {state.error && (
-              <Alert variant="destructive" className="max-w-md my-3">
+              <Alert variant="destructive" className="max-w-md">
                 <AlertCircleIcon />
-                <AlertTitle>Error durante Login</AlertTitle>
+                <AlertTitle>Error durante el registro</AlertTitle>
                 <AlertDescription>{state.error}</AlertDescription>
               </Alert>
             )}

@@ -6,6 +6,7 @@ import { PublicLayout } from '@/pages/public/layout/PublicLayout';
 import { Welcome } from '@/pages/public/welcome/Welcome';
 import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { RequireAuth } from './Guards/RequireAuth/RequireAuth';
 
 // * lazy load
 const Profile = lazy(() => import("@/pages/private/Profile/Profile"));
@@ -15,7 +16,8 @@ export const routes = createBrowserRouter([
     // layout publico
     {
         path: '/',
-        element: <PublicLayout />,
+        element: (
+            <PublicLayout />),
         // children
         children: [
             // ruta por defecto: welcome
@@ -38,7 +40,12 @@ export const routes = createBrowserRouter([
     // layout privado
     {
         path: '/private',
-        element: <PrivateLayout />,
+        // * envolvemos el elemento del layout en el componente guarda para redireccionar en caso de estar autenticado
+        element: (
+            <RequireAuth>
+                <PrivateLayout />
+            </RequireAuth>
+        ),
         // children - Dashbaord, Perfil, Nuevo / Edicion
         children: [
             // ruta por defecto: collection

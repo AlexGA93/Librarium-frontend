@@ -1,19 +1,17 @@
 import { AlertCircleIcon, BookOpenText, Lock, LockOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { loginAction } from "@/actions/authActions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/hooks/useAuth";
-import type { LoginForm } from "@/types/auth.interfaces";
-import { constants } from "@/utils/constants";
-import axios from "axios";
+import { useAuth } from "@/pages/public/hooks/useAuth";
+import type { LoginForm } from "@/types/login.interface";
 import { type ChangeEvent, useState } from "react";
 import { toast } from "sonner";
+import { useLogin } from "../../hooks/useLogin";
 
 export const Login = () => {
   // hooks
@@ -24,7 +22,8 @@ export const Login = () => {
   });
   const [showPass, setShowPass] = useState<boolean>(false);
   // custom hooks
-  const { state, dispatch } = useAuth();
+  const { state } = useAuth();
+  const { mutateAsync: submitLogin, isPending } = useLogin();
   // methods
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -38,57 +37,13 @@ export const Login = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      // despachamos la accion de LOGIN_START para reaccionar correctamente al proceso
-      // loading: true
-      // error: null
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_START,
-      });
-
-      // realizamos peticion
-      const result = await loginAction(login);
-
-      // diferenciamos el estado de error del correcto
-      if (!result.ok) {
-        // despachamos accion de LOGIN_ERROR
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-          payload: result.message,
-        });
-      } else {
-        // con los datos de la peticion y todo en orden, realizamos accion de LOGIN_SUCCESS
-        // loading: false,
-        // user: action.payload.user,
-        // token: action.payload.token,
-        // isAuthenticated: true,
-        // error: null,
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS,
-          payload: result.data,
-        });
-
-        toast.success("Usuario registrado correctamente");
-
-        // * redireccionamos a la pagina deseada
+    // * llamamos a la mutacion del custom hook gestionado por TanStack query
+    submitLogin(login, {
+      onSuccess: () => {
+        toast.success("Sesión iniciada correctamente");
         navigate("/private");
-      }
-    } catch (error: unknown) {
-      let message = "No se pudo iniciar sesion";
-
-      if (axios.isAxiosError(error)) {
-        message = error.response?.data.message ?? message;
-      }
-
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-        payload: message,
-      });
-    }
-  };
-
-  const toggleShowPass = () => {
-    setShowPass((prev) => !prev);
+      },
+    });
   };
 
   return (
@@ -133,7 +88,7 @@ export const Login = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={toggleShowPass}
+                  onClick={() => setShowPass((prev) => !prev)}
                 >
                   {showPass ? <LockOpen /> : <Lock />}
                 </Button>
@@ -144,9 +99,9 @@ export const Login = () => {
               type="submit"
               className="bg-brand-coral mt-8 h-11 w-full rounded-xl"
               size="lg"
-              disabled={state.loading}
+              disabled={isPending}
             >
-              {state.loading ? <Spinner /> : "Inicio de Sesion"}
+              {isPending ? <Spinner /> : "Inicio de Sesion"}
             </Button>
             {state.error && (
               <Alert variant="destructive" className="max-w-md my-3">

@@ -1,9 +1,15 @@
 import logo from "@/assets/icons/open_book.svg";
-import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, PlusSquare, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/pages/public/hooks/useAuth";
+import { BookOpen, PlusSquare, User, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-export const PrivateSideBar = () => {
+interface PrivateSideBarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const PrivateSideBar = ({ isOpen, onClose }: PrivateSideBarProps) => {
   // accedemos a los parametros de url
   const { pathname } = useLocation();
   // acceder al estado global
@@ -29,10 +35,28 @@ export const PrivateSideBar = () => {
   const handleActiveLink = (to: string) => pathname === to;
 
   return (
-    <aside className="w-64 h-screen bg-background border-r border-border flex flex-col justify-between p-6 select-none shrink-0 font-sans">
+    <>
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+        />
+      )}
+      <aside
+        id="private-sidebar"
+        aria-label="Menú de navegación"
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-72 shrink-0 flex-col justify-between border-r border-border bg-background p-6 font-sans select-none transition-transform duration-200 md:sticky md:top-0 md:z-auto md:h-screen md:w-64 md:translate-x-0 ${
+          isOpen
+            ? "visible translate-x-0"
+            : "invisible -translate-x-full md:visible md:translate-x-0"
+        }`}
+      >
       <div className="space-y-8">
         {/* Identidad de Marca / Logo */}
-        <div className="flex items-center gap-3 px-2">
+        <div className="flex items-center justify-between gap-3 px-2">
+          <div className="flex items-center gap-3">
           {/* Isotipo con forma de libro */}
           <div className="w-8 h-8 flex items-center justify-center ">
             <img className="size-8" src={logo} alt="Librarium" />
@@ -40,6 +64,17 @@ export const PrivateSideBar = () => {
           <span className="font-serif text-2xl font-bold tracking-tight text-foreground">
             Librarium
           </span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label="Cerrar menú"
+            onClick={onClose}
+          >
+            <X />
+          </Button>
         </div>
 
         {/* Menú de Navegación */}
@@ -48,6 +83,7 @@ export const PrivateSideBar = () => {
             <Link
               key={item.id}
               to={item.pathName}
+              onClick={onClose}
               className={`cursor-pointer w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm transition-all duration-150 text-left ${
                 handleActiveLink(item.pathName)
                   ? "bg-accent text-accent-foreground shadow-sm font-semibold"
@@ -78,13 +114,15 @@ export const PrivateSideBar = () => {
           </span>
           <Link
             to="/private/profile"
+            onClick={onClose}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
           >
             Ver Perfil
           </Link>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 

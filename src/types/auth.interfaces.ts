@@ -1,21 +1,10 @@
 import type { constants } from "@/utils/constants";
 import type { Dispatch } from "react";
+import type { User } from "./user.interface";
 
-export interface LoginForm {
-  email: string;
-  password: string;
-}
-
-export interface RegisterForm {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
+export interface AuthSession {
+  user: User;
+  token: string;
 }
 
 export interface AuthInitialState {
@@ -24,55 +13,64 @@ export interface AuthInitialState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  authReady: boolean;
 }
-export interface LoginResponse {
-  user: User | null;
-  token: string;
-}
-
-export type LoginActionResult =
-  | { ok: true; data: LoginResponse; }
-  | { ok: false; message: string; statusCode?: number };
-
-
-export interface RegisterResponse{
-  code: number;
-  message: string;
-  error?: string | null;
-}
-
 export interface AuthApiErrorResponse {
   message?: string;
   details?: string[];
 }
 
-export type RegisterActionResult =
-  | { ok: true; data: RegisterResponse; }
-  | { ok: false; message: string; statusCode?: number };
-
 export type AuthAction =
   | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_START }
   | {
-      type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS;
-      payload: LoginResponse;
-    }
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS;
+    payload: AuthSession;
+  }
   | {
-      type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR;
-      payload: string;
-    }
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR;
+    payload: string;
+  }
   | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.LOGOUT }
   | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_START }
   | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_SUCCESS }
   | {
-      type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR;
-      payload: string;
-    }
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR;
+    payload: string;
+  }
+  | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_START }
   | {
-      type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_UPDATE;
-      payload: User;
-    };
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_SUCCESS;
+    payload: User;
+  }
+  | {
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_ERROR;
+    payload: string;
+  }
+  | {
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_UPDATE;
+    payload: User;
+  }
+  | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_START }
+  | { type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_SUCCESS }
+  | {
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_ERROR;
+    payload: string;
+  }
+  | {
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_RESTORED,
+    payload: AuthSession;
+  }
+  | {
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED,
+  }
+  ;
 
   export interface AuthContextValue {
   state: AuthInitialState;
   dispatch: Dispatch<AuthAction>;
+}
+
+export interface CheckStatusResponse {
+  user: User;
+  token: string;
 }

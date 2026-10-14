@@ -1,14 +1,9 @@
 import { api } from "@/api/axios";
-import type {
-    AuthApiErrorResponse,
-    LoginActionResult,
-    LoginForm,
-    LoginResponse,
-    RegisterActionResult,
-    RegisterForm,
-    RegisterResponse,
-} from "@/types/auth.interfaces";
+import type { AuthApiErrorResponse } from "@/types/auth.interfaces";
+import type { LoginActionResult, LoginForm, LoginResponse } from "@/types/login.interface";
+import type { RegisterActionResult, RegisterForm, RegisterResponse } from "@/types/register.interface";
 import axios from "axios";
+import { AuthError } from "./errors/auth.error";
 
 export const loginAction = async (
   loginForm: LoginForm,
@@ -16,10 +11,8 @@ export const loginAction = async (
   try {
     const { data } = await api.post<LoginResponse>(`/auth/login`, loginForm);
 
-    // transformamos los datos para coincidir con la forma LoginResponse
-    localStorage.setItem("token", data.token);
+    return data;
 
-    return { ok: true, data };
   } catch (error: unknown) {
     // mensaje por defecto
     let message = "No se pudo iniciar sesion";
@@ -37,8 +30,9 @@ export const loginAction = async (
           break;
       }
     }
-
-    return { ok: false, message, statusCode };
+    // * lanzamos la clase del error personalizado
+     throw new AuthError(message, statusCode);
+    // return { ok: false, message, statusCode };
   }
 };
 
@@ -50,9 +44,8 @@ export const registerAction = async (
       "/auth/register",
       registerForm,
     );
-    console.log({ data });
 
-    return { ok: true, data };
+    return data;
   } catch (error: unknown) {
     // mensaje por defecto
     let message = "No se pudo registrar la cuenta";
@@ -76,11 +69,10 @@ export const registerAction = async (
           break;
       }
     }
-
-    return { ok: false, message, statusCode };
+    // * lanzamos la clase del error personalizado
+     throw new AuthError(message, statusCode);
   }
 };
-
 
 const handleErrorDetails = (errorData?: AuthApiErrorResponse): string => {
   return errorData?.details?.join(", ") ?? "";
