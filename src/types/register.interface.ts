@@ -14,6 +14,4 @@ export interface RegisterResponse{
   error?: string | null;
 }
 
-export type RegisterActionResult =
-  | { ok: true; data: RegisterResponse; }
-  | { ok: false; message: string; statusCode?: number };
+export type RegisterActionResult = RegisterResponse;

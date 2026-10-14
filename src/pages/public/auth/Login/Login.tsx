@@ -9,10 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/pages/public/hooks/useAuth";
 import type { LoginForm } from "@/types/login.interface";
-import { constants } from "@/utils/constants";
 import { type ChangeEvent, useState } from "react";
 import { toast } from "sonner";
-import { userDataAction } from "../../../private/actions/user.actions";
 import { useLogin } from "../../hooks/useLogin";
 
 export const Login = () => {
@@ -24,7 +22,7 @@ export const Login = () => {
   });
   const [showPass, setShowPass] = useState<boolean>(false);
   // custom hooks
-  const { state, dispatch } = useAuth();
+  const { state } = useAuth();
   const { mutateAsync: submitLogin, isPending } = useLogin();
   // methods
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -39,76 +37,13 @@ export const Login = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // * Fase 1: iniciar el estado de carga y limpiar errores anteriores.
-    dispatch({ type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_START });
-
-    try {
-      // *: peticion mediante tanstack query (y custom hook)
-      // * Fase 2: enviar las credenciales al backend.
-      // const loginResult = await loginAction(login);
-      const loginResult = await submitLogin(login); 
-      
-      // * Fase 3: detener el flujo si el backend rechaza el inicio de sesión.
-      if (!loginResult.ok) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-          payload: loginResult.message,
-        });
-        return;
-      }
-
-      // * Fase 4: comprobar que la respuesta incluya el token necesario.
-      const token = loginResult.data.token;
-      
-
-      if (!token) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-          payload: "El servidor no devolvió un token",
-        });
-        return;
-      }
-      
-      // * Fase 5: validar el token y obtener el perfil del usuario autenticado.
-      const userResult = await userDataAction(token);
-
-      
-
-      if (!userResult.ok) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-          payload: userResult.message,
-        });
-        localStorage.removeItem('token');
-        return;
-      }
-
-      // * Fase 6: persistir el token tras confirmar que el perfil se obtuvo correctamente.
-      localStorage.setItem("token", token);
-
-      // * Fase 7: guardar token y usuario en el estado global.
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_SUCCESS,
-        payload: { token, user: userResult.data.data! },
-      });
-
-      // * Fase 8: informar del éxito y navegar al área privada.
-      toast.success("Sesión iniciada correctamente");
-      navigate("/private");
-    } catch {
-      // * Fase 9: limpiar el token si ocurre un error inesperado.
-      try {
-        localStorage.removeItem("token");
-      } catch {
-        // El navegador puede bloquear el acceso al almacenamiento local.
-      }
-
-      // * Fase 10: reflejar el error y finalizar el estado de carga.
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGIN_ERROR,
-        payload: "No se pudo completar el inicio de sesión",
-      });
-    }
+    // * llamamos a la mutacion del custom hook gestionado por TanStack query
+    submitLogin(login, {
+      onSuccess: () => {
+        toast.success("Sesión iniciada correctamente");
+        navigate("/private");
+      },
+    });
   };
 
   return (

@@ -8,7 +8,5 @@ export interface LoginResponse {
   message: string;
   token?: string;
 }
-export type LoginActionResult =
-  | { ok: true; data: LoginResponse; }
-  | { ok: false; message: string; statusCode?: number };
+export type LoginActionResult = LoginResponse;
 

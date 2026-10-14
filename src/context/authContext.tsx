@@ -30,6 +30,15 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   // usamos useReducer
   const [state, dispatch] = useReducer(authReducer, initialState);
 
+  // * inspeccionamos el estado del provider para ver el historial de acciones
+  const dispatchWithLog: AuthContextValue["dispatch"] = (action) => {
+    if (import.meta.env.VITE_DEV === "true") {
+      console.log("[auth action]", action);
+    }
+
+    dispatch(action);
+  };
+
   // * aplicamos un efecto inmediato en el componente de una sola ejecucion (cuando el mismo se crea) para restaurar el usuario realizando el ciclo de peticion de los datos en caso de disponer del token
   useEffect(() => {
     // definimos funcion asincrona
@@ -39,14 +48,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       try {
         token = localStorage.getItem("token");
       } catch {
-        dispatch({
+        dispatchWithLog({
           type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED,
         });
         return;
       }
 
       if (!token) {
-        dispatch({
+        dispatchWithLog({
           type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED,
         });
         return;
@@ -61,13 +70,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           // El navegador puede bloquear el almacenamiento local.
         }
 
-        dispatch({
+        dispatchWithLog({
           type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED,
         });
         return;
       }
 
-      dispatch({
+      dispatchWithLog({
         type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_RESTORED,
         payload: {
           token,
@@ -79,5 +88,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     void restoreSession();
   }, []);
 
-  return <AuthContext value={{ state, dispatch }}>{children}</AuthContext>;
+  return (
+    <AuthContext value={{ state, dispatch: dispatchWithLog }}>
+      {children}
+    </AuthContext>
+  );
 };

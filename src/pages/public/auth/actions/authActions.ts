@@ -3,6 +3,7 @@ import type { AuthApiErrorResponse } from "@/types/auth.interfaces";
 import type { LoginActionResult, LoginForm, LoginResponse } from "@/types/login.interface";
 import type { RegisterActionResult, RegisterForm, RegisterResponse } from "@/types/register.interface";
 import axios from "axios";
+import { AuthError } from "./errors/auth.error";
 
 export const loginAction = async (
   loginForm: LoginForm,
@@ -10,7 +11,8 @@ export const loginAction = async (
   try {
     const { data } = await api.post<LoginResponse>(`/auth/login`, loginForm);
 
-    return { ok: true, data };
+    return data;
+
   } catch (error: unknown) {
     // mensaje por defecto
     let message = "No se pudo iniciar sesion";
@@ -28,8 +30,9 @@ export const loginAction = async (
           break;
       }
     }
-
-    return { ok: false, message, statusCode };
+    // * lanzamos la clase del error personalizado
+     throw new AuthError(message, statusCode);
+    // return { ok: false, message, statusCode };
   }
 };
 
@@ -42,7 +45,7 @@ export const registerAction = async (
       registerForm,
     );
 
-    return { ok: true, data };
+    return data;
   } catch (error: unknown) {
     // mensaje por defecto
     let message = "No se pudo registrar la cuenta";
@@ -66,8 +69,8 @@ export const registerAction = async (
           break;
       }
     }
-
-    return { ok: false, message, statusCode };
+    // * lanzamos la clase del error personalizado
+     throw new AuthError(message, statusCode);
   }
 };
 

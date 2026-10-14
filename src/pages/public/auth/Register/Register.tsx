@@ -5,7 +5,10 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/pages/public/hooks/useAuth";
-import type { RegisterForm, RegisterFormValues } from "@/types/register.interface";
+import type {
+  RegisterForm,
+  RegisterFormValues
+} from "@/types/register.interface";
 import { constants } from "@/utils/constants";
 import { cn } from "cn";
 import { AlertCircleIcon, BookOpenText, Lock, LockOpen } from "lucide-react";
@@ -21,12 +24,12 @@ export const Register = () => {
     name: "",
     email: "",
     password: "",
-    password2: ''
+    password2: "",
   });
   const [showPass, setShowPass] = useState<boolean>(false);
 
   // custom hooks
-  const { state, dispatch } = useAuth(); // * estado global 
+  const { state, dispatch } = useAuth(); // * estado global
   const { mutateAsync: submitRegister, isPending } = useRegister(); // * peticion mediante accion
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -41,58 +44,30 @@ export const Register = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // * Fase 1: iniciar el estado de carga y limpiar errores anteriores.
-    // loading: true
-    // error: null
-    dispatch({
-      type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_START,
-    });
-
+    // * validamos que las claves sean iguales antes de hacer nada.
     if (register.password !== register.password2) {
+      setIsError(true);
       dispatch({
         type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR,
         payload: "Las claves no coinciden",
       });
-
-      setIsError(true);
       return;
     }
 
-    try {
+    setIsError(false);
 
-      // password2 solo valida el formulario, no forma parte del payload API.
-      const payload: RegisterForm = {
-        name: register.name,
-        email: register.email,
-        password: register.password,
-      };
+    const payload: RegisterForm = {
+      name: register.name,
+      email: register.email,
+      password: register.password,
+    };
 
-      // * llamaremos a un custom hook el cual usara la accion
-      // const registerResult = await registerAction(payload);
-      const registerResult = await submitRegister(payload);
-
-      
-      if (!registerResult.ok) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR,
-          payload: registerResult.message,
-        });
-        return;
-      }
-
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_SUCCESS,
-      });
-
-      toast.success("Usuario registrado correctamente");
-      navigate("/auth/login");
-    } catch {
-      // registerAction normaliza errores HTTP; este bloque cubre fallos inesperados.
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.REGISTER_ERROR,
-        payload: "No se pudo completar el registro",
-      });
-    }
+    submitRegister(payload, {
+      onSuccess: () => {
+        toast.success("Usuario registrado correctamente");
+        navigate("/auth/login");
+      },
+    });
   };
 
   const toggleShowPass = () => {
@@ -136,10 +111,7 @@ export const Register = () => {
               <ButtonGroup>
                 <Input
                   id="input-button-group"
-                  className={cn(
-                    "bg-gray-50",
-                    isError && "border-red-500",
-                  )}
+                  className={cn("bg-gray-50", isError && "border-red-500")}
                   name="password"
                   type={showPass ? "text" : "password"}
                   placeholder="Clave..."
@@ -160,10 +132,7 @@ export const Register = () => {
               <ButtonGroup>
                 <Input
                   id="input-button-group"
-                  className={cn(
-                    "bg-gray-50",
-                    isError && "border-red-500",
-                  )}
+                  className={cn("bg-gray-50", isError && "border-red-500")}
                   name="password2"
                   type={showPass ? "text" : "password"}
                   placeholder="Repetir Clave..."
