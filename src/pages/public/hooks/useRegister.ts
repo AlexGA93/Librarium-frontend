@@ -1,8 +1,8 @@
 import { constants } from "@/utils/constants";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "../../../hooks/useAuth";
 import { registerAction } from "../auth/actions/authActions";
 import { AuthError } from "../auth/actions/errors/auth.error";
-import { useAuth } from "./useAuth";
 
 /**
  * Gestiona el envío de un registro, que crea un usuario en el servidor.

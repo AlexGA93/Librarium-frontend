@@ -11,18 +11,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/pages/public/hooks/useAuth";
 import type { User } from "@/types/user.interface";
 import { constants } from "@/utils/constants";
 import { Lock, LockOpen, LogOut, Pencil, Save, Trash, X } from "lucide-react";
 import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import {
-  deleteUserDataAction,
-  editUserDataAction,
-} from "../actions/user.actions";
+import { useDeleteUser } from "../hooks/useDeleteUser";
+import { useEditUser } from "../hooks/useEditUser";
 
 interface ProfileForm {
   name: string;
@@ -32,8 +30,13 @@ interface ProfileForm {
 }
 
 export const Profile = () => {
-  const { state, dispatch } = useAuth();
+  // * Herramienta react-route
   const navigate = useNavigate();
+  // * Context - EstadoGlobal
+  const { state, dispatch } = useAuth();
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
+  const { mutate: editUser, isPending: isEditingUser } = useEditUser();
+  // * Estados Locales
   const [isEditing, setIsEditing] = useState(false);
   const [showPass, setShowPass] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
@@ -44,6 +47,8 @@ export const Profile = () => {
     password: "",
     password2: "",
   });
+
+  // * asignaciones
   const user = state.user;
   const initials =
     user?.name
@@ -53,6 +58,7 @@ export const Profile = () => {
       .map((part) => part[0]?.toUpperCase())
       .join("") || "U";
 
+  // * Gestion del componente
   const startEditing = () => {
     setForm({
       name: user?.name ?? "",
@@ -83,6 +89,68 @@ export const Profile = () => {
     }));
   };
 
+  const handleEnableInputs = () => {
+    return (!isEditing && "bg-gray-100") || undefined;
+  };
+
+  const handleDeleteAccountNotification = () => {
+    toast("¿Estás seguro de continuar?", {
+      action: {
+        label: "Sí, borrar",
+        onClick: () => void handleDeleteAccount(),
+      },
+      cancel: {
+        label: "No",
+        onClick: () => toast.info("Eliminación de cuenta cancelada"),
+      },
+    });
+  };
+
+  // * ACCIONES O EVENTOS
+  // Funcion de evento de logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    dispatch({ type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGOUT });
+    navigate("/auth/login", { replace: true });
+  };
+
+  // Funcion de evento de borrado de cuenta
+  const handleDeleteAccount = () => {
+    if (!user || !state.token) {
+      const message = "No hay una sesión activa para eliminar la cuenta";
+      dispatch({
+        type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_ERROR,
+        payload: message,
+      });
+      toast.error(message);
+      return;
+    }
+
+    deleteUser(
+      { userId: user.id, token: state.token },
+      {
+        onSuccess: ({ tokenRemoved }) => {
+          if (tokenRemoved) {
+            toast.success("La cuenta se eliminó correctamente");
+          } else {
+            toast.error(
+              "La cuenta se eliminó, pero no se pudo limpiar el token guardado en este navegador.",
+            );
+          }
+          navigate("/auth/login", { replace: true });
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Ocurrió un error al eliminar la cuenta",
+          );
+        },
+      },
+    );
+  };
+
+  // Funcion de envio de datos del formulario
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -94,7 +162,7 @@ export const Profile = () => {
       email: form.email.trim(),
     };
 
-    // * De haber password en el valor, coimprobamos si no, seguimos sin ella
+    // * Primero validamos las passwords
     if (form.password !== "") {
       // si hubiera password debemso cercionarnos de que sea igual
       if (form.password !== form.password2) {
@@ -120,121 +188,26 @@ export const Profile = () => {
       return;
     }
 
-    dispatch({
-      type: constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_START,
-    });
-
-    try {
-      const result = await editUserDataAction(
-        userPayload,
-        user.id,
-        state.token,
-      );
-
-      if (!result.ok) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_ERROR,
-          payload: result.message,
-        });
-        toast.error(result.message);
-        return;
-      }
-
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_SUCCESS,
-        payload: result.data.data!,
-      });
-      setIsEditing(false);
-      setIsError(false);
-      toast.success("Perfil actualizado correctamente");
-    } catch {
-      const message = "No se pudieron guardar los cambios del perfil";
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.PROFILE_ERROR,
-        payload: message,
-      });
-      toast.error(message);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    dispatch({ type: constants.AUTH.REDUCERS.ACTION_TYPES.LOGOUT });
-    navigate("/auth/login", { replace: true });
-  };
-
-  const handleEnableInputs = () => {
-    return (!isEditing && "bg-gray-100") || undefined;
-  };
-
-  const handleDeleteAccountNotification = () => {
-    toast("¿Estás seguro de continuar?", {
-      action: {
-        label: "Sí, borrar",
-        onClick: () => void handleDeleteAccount(),
+    // * llamamos a al funcion
+    editUser(
+      { user: userPayload, userId: user.id, token: state.token! },
+      {
+        onSuccess: () => {
+          setIsEditing(false);
+          setIsError(false);
+          toast.success("Perfil actualizado correctamente");
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Ocurrió un error al editar el perfil",
+          );
+        },
       },
-      cancel: {
-        label: "No",
-        onClick: () => toast.info("Eliminación de cuenta cancelada"),
-      },
-    });
+    );
   };
 
-  const handleDeleteAccount = async () => {
-    if (!user || !state.token) {
-      const message = "No hay una sesión activa para eliminar la cuenta";
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_ERROR,
-        payload: message,
-      });
-      toast.error(message);
-      return;
-    }
-
-    dispatch({
-      type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_START,
-    });
-
-    try {
-      const result = await deleteUserDataAction(user.id, state.token);
-
-      if (!result.ok) {
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_ERROR,
-          payload: result.message,
-        });
-        toast.error(result.message);
-        return;
-      }
-
-      try {
-        localStorage.removeItem("token");
-      } catch (error: unknown) {
-        console.error("No se pudo eliminar el token local tras borrar la cuenta.", error);
-        dispatch({
-          type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_SUCCESS,
-        });
-        navigate("/auth/login", { replace: true });
-        toast.error(
-          "La cuenta se eliminó, pero no se pudo limpiar el token guardado en este navegador.",
-        );
-        return;
-      }
-
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_SUCCESS,
-      });
-      toast.success("La cuenta se eliminó correctamente");
-      navigate("/auth/login", { replace: true });
-    } catch {
-      const message = "Ocurrió un error al eliminar la cuenta";
-      dispatch({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.DELETE_ACCOUNT_ERROR,
-        payload: message,
-      });
-      toast.error(message);
-    }
-  };
   return (
     <div className="mx-auto w-full max-w-3xl animate__animated animate__fadeIn">
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
@@ -394,9 +367,9 @@ export const Profile = () => {
               <Button
                 className="bg-brand-coral"
                 type="submit"
-                disabled={state.loading}
+                disabled={isEditingUser}
               >
-                {state.loading ? (
+                {isEditingUser ? (
                   <>
                     <p>Guardando...</p>
                     <Spinner />
@@ -440,7 +413,13 @@ export const Profile = () => {
             Borrar cuenta definitivamente
           </p>
         </div>
-        <Button className="p-6" type="button" variant="destructive" onClick={handleDeleteAccountNotification}>
+        <Button
+          className="p-6"
+          type="button"
+          variant="destructive"
+          onClick={handleDeleteAccountNotification}
+          disabled={isDeleting}
+        >
           <Trash />
           Borrar Cuenta
         </Button>

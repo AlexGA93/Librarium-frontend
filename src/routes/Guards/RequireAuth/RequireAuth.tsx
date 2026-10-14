@@ -1,5 +1,5 @@
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/pages/public/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import type { PropsWithChildren } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 

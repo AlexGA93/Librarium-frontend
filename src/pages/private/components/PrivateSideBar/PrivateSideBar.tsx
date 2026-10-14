@@ -1,6 +1,6 @@
 import logo from "@/assets/icons/open_book.svg";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/pages/public/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, PlusSquare, User, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 

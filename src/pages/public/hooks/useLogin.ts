@@ -2,9 +2,9 @@ import { userDataAction } from "@/pages/private/actions/user.actions";
 import type { LoginForm } from "@/types/login.interface";
 import { constants } from "@/utils/constants";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "../../../hooks/useAuth";
 import { loginAction } from "../auth/actions/authActions";
 import { AuthError } from "../auth/actions/errors/auth.error";
-import { useAuth } from "./useAuth";
 
 /**
  * Gestiona el inicio de sesión y la creación de la sesión autenticada.
@@ -34,14 +34,11 @@ export const useLogin = () => {
         throw new AuthError("El servidor no devolvió un token");
       }
 
-      // TODO: modificar cuando adaptemos el user tambien
       const userResult = await userDataAction(token);
 
-      if (!userResult.ok || !userResult.data.data) {
+      if (!userResult.data) {
         throw new AuthError(
-          userResult.ok
-            ? "El servidor no devolvió los datos del usuario"
-            : userResult.message,
+          userResult.message || "El servidor no devolvió los datos del usuario"
         );
       }
 
@@ -51,7 +48,7 @@ export const useLogin = () => {
         throw new AuthError("No se pudo guardar la sesión en este navegador");
       }
 
-      return { token, user: userResult.data.data };
+      return { token, user: userResult.data };
     },
     // * Esta función se dispara antes de que la función de mutación se ejecute, y recibe las mismas variables. Útil para actualizaciones optimistas aplicadas con la esperanza de que la mutación tenga éxito. El valor que devuelve se pasa a onSuccess, onError y onSettled como onMutateResult, que es donde generalmente se revierte una actualización optimista. Si se devuelve una promesa, se espera antes de que se ejecute la función de mutación.
     onMutate: () => {

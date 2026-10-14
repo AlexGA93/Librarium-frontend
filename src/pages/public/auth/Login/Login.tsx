@@ -7,7 +7,7 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/pages/public/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import type { LoginForm } from "@/types/login.interface";
 import { type ChangeEvent, useState } from "react";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ export const Login = () => {
   const [showPass, setShowPass] = useState<boolean>(false);
   // custom hooks
   const { state } = useAuth();
-  const { mutateAsync: submitLogin, isPending } = useLogin();
+  const { mutate: submitLogin, isPending } = useLogin();
   // methods
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;

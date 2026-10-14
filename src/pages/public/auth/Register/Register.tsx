@@ -4,7 +4,7 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/pages/public/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import type {
   RegisterForm,
   RegisterFormValues
@@ -30,7 +30,7 @@ export const Register = () => {
 
   // custom hooks
   const { state, dispatch } = useAuth(); // * estado global
-  const { mutateAsync: submitRegister, isPending } = useRegister(); // * peticion mediante accion
+  const { mutate: submitRegister, isPending } = useRegister(); // * peticion mediante accion
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -41,7 +41,7 @@ export const Register = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // * validamos que las claves sean iguales antes de hacer nada.
