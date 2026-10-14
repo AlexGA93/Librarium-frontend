@@ -11,9 +11,7 @@ export interface UserResponse {
   data?: User;
 }
 
-export type UserAcreditationResult =
-  | { ok: true; data: UserResponse }
-  | { ok: false; message: string };
+export type UserAcreditationResult = UserResponse; 
 
 export type UserDeletionResult = { ok: true } | { ok: false; message: string };
 

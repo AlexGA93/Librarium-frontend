@@ -1,4 +1,5 @@
 import { userDataAction } from "@/pages/private/actions/user.actions";
+import { AuthError } from "@/pages/public/auth/actions/errors/auth.error";
 import { authReducer } from "@/reducers/authReducer";
 import type {
   AuthContextValue,
@@ -61,28 +62,35 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         return;
       }
 
-      const result = await userDataAction(token);
+      try {
+        const response = await userDataAction(token);
+        const user = response.data;
 
-      if (!result.ok) {
-        try {
-          localStorage.removeItem("token");
-        } catch {
-          // El navegador puede bloquear el almacenamiento local.
+        if (!user) {
+          throw new AuthError(
+            response.message || "El servidor no devolvió los datos del usuario",
+          );
+        }
+
+        dispatchWithLog({
+          type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_RESTORED,
+          payload: { token, user },
+        });
+      } catch (error: unknown) {
+        if (error instanceof AuthError && error.statusCode === 401) {
+          try {
+            localStorage.removeItem("token");
+          } catch (storageError: unknown) {
+            console.error("No se pudo eliminar el token inválido.", storageError);
+          }
+        } else {
+          console.error("No se pudo restaurar la sesión.", error);
         }
 
         dispatchWithLog({
           type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED,
         });
-        return;
       }
-
-      dispatchWithLog({
-        type: constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_RESTORED,
-        payload: {
-          token,
-          user: result.data.data!,
-        },
-      });
     };
     // llamamos a al funcion asincrona
     void restoreSession();

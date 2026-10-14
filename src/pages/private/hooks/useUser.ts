@@ -1,5 +1,5 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/pages/public/hooks/useAuth";
 import { userDataAction } from "../actions/user.actions";
 
 export const useUser = () => {
