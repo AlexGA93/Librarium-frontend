@@ -1,73 +1,86 @@
+import { Button } from "@/components/ui/button";
+import type { Book } from "@/types/book.interface";
+import { genres } from "@/utils/constants";
+import { BookOpen, Camera, Info } from "lucide-react";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 
+const getTodayDate = () => {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
 
-import { Button } from '@/components/ui/button';
-import { BookOpen, Camera, Info } from 'lucide-react';
-import { useState } from 'react';
+  return `${today.getFullYear()}-${month}-${day}`;
+};
 
-export const Book = () => {
-  const [formData, setFormData] = useState({
-    titulo: '',
-    autor: '',
-    fechaPublicacion: '',
-    genero: 'Ficción',
-    sinopsis: '',
-    portada: null,
+export const BookPage = () => {
+  const { id } = useParams();
+
+  const bookTopTitle = id === "new" ? "Nueva Adquisición" : "Obra seleccionada";
+  const bookTitle = id === "new" ? "Expandir el Archivo" : "Visualizar Obra";
+  const bookSubtitle =
+    id === "new"
+      ? "Registra una nueva obra en tu biblioteca personal. Cada entrada es un portal a un nuevo mundo de conocimiento."
+      : "Una obra que te pertenece.";
+
+  const [formData, setFormData] = useState<Book>({
+    title: "Libro de Prueba",
+    author: "Autor de Prueba",
+    releaseDate: "2027-01-01",
+    genre: genres[0].label,
+    sinopsis:
+      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus hic reiciendis aliquid, laboriosam ut culpa tenetur, sapiente cumque optio harum ab ad. Accusantium sequi reiciendis, ad delectus qui eligendi officia.",
+    date: getTodayDate(),
+    coverFile: null,
   });
 
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const generos = ['Ficción', 'Ensayo', 'Poesía', 'Historia', 'Otros'];
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
-    // if (file) {
-    //   setFormData({ ...formData, portada: file });
-    //   setPreviewUrl(URL.createObjectURL(file));
-    // }
+
+    if (file) {
+      setFormData({ ...formData, coverFile: file });
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Libro guardado:', formData);
+    console.log("Libro para guardar:", formData);
     // Lógica para persistir en tu base de datos o almacenamiento local
+    /**
+     * TODO:
+     *  1- llamar a custom hook (mutate)
+     *  2- conecta con action y hace dispatch (estado global de libros)
+     *  3- peticion con axios
+     */
   };
 
   return (
     <div className="animate__animated animate__fadeIn flex-1 flex flex-col min-h-screen bg-background text-foreground font-sans antialiased">
-      {/* 1. Header Superior con Buscador */}
-      {/* <header className="h-16 px-8 lg:px-12 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-20">
-
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Configuración"
-            className="size-11 rounded-full hover:bg-accent"
-          >
-            <Settings className="w-7 h-7" />
-          </Button>
-        </div>
-      </header> */}
-
       {/* 2. Contenido Principal */}
       <main className="p-8 lg:p-12 max-w-6xl w-full mx-auto space-y-8">
         {/* Cabecera Editorial */}
         <div className="space-y-2">
           <span className="text-xs font-semibold tracking-wider text-brand-coral uppercase">
-            Nueva Adquisición
+            {bookTopTitle}
           </span>
           <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground">
-            Expandir el Archivo
+            {bookTitle}
           </h1>
           <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            Registra una nueva obra en tu biblioteca personal. Cada entrada es un portal a un nuevo mundo de conocimiento.
+            {bookSubtitle}
           </p>
         </div>
 
         {/* Formulario en 2 Columnas */}
-        <form onSubmit={(e) => handleSubmit(e)} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start pt-2">
-          
+        <form
+          onSubmit={(e) => handleSubmit(e)}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start pt-2"
+        >
           {/* Columna Izquierda: Carga de Portada y Cita */}
           <div className="lg:col-span-5 space-y-8">
             <div className="relative border-2 border-dashed border-border bg-muted/50 hover:bg-accent transition-colors rounded-3xl p-8 flex flex-col items-center justify-center text-center aspect-3/4 cursor-pointer group shadow-sm">
@@ -93,7 +106,9 @@ export const Book = () => {
                     Subir Portada
                   </h3>
                   <p className="text-xs text-muted-foreground max-w-[200px] leading-relaxed">
-                    Formatos aceptados: JPG, PNG.<br />Recomendado: 1200 x 1600 px.
+                    Formatos aceptados: JPG, PNG.
+                    <br />
+                    Recomendado: 1200 x 1600 px.
                   </p>
                 </>
               )}
@@ -112,7 +127,6 @@ export const Book = () => {
 
           {/* Columna Derecha: Campos de Información */}
           <div className="lg:col-span-7 space-y-8">
-            
             {/* Sección 01: Detalles de la Obra */}
             <div className="space-y-5">
               <div className="flex items-center gap-3">
@@ -133,8 +147,10 @@ export const Book = () => {
                   <input
                     type="text"
                     required
-                    value={formData.titulo}
-                    onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
                     placeholder="Ej. El Laberinto de la Soledad"
                     className="w-full bg-muted/50 border border-input focus:border-ring focus:bg-background text-foreground text-sm rounded-xl px-4 py-3 outline-none transition-all placeholder:text-muted-foreground"
                   />
@@ -149,8 +165,10 @@ export const Book = () => {
                     <input
                       type="text"
                       required
-                      value={formData.autor}
-                      onChange={(e) => setFormData({ ...formData, autor: e.target.value })}
+                      value={formData.author}
+                      onChange={(e) =>
+                        setFormData({ ...formData, author: e.target.value })
+                      }
                       placeholder="Nombre completo"
                       className="w-full bg-muted/50 border border-input focus:border-ring focus:bg-background text-foreground text-sm rounded-xl px-4 py-3 outline-none transition-all placeholder:text-muted-foreground"
                     />
@@ -162,8 +180,13 @@ export const Book = () => {
                     <div className="relative">
                       <input
                         type="date"
-                        value={formData.fechaPublicacion}
-                        onChange={(e) => setFormData({ ...formData, fechaPublicacion: e.target.value })}
+                        value={formData.releaseDate}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            releaseDate: e.target.value,
+                          })
+                        }
                         className="w-full bg-muted/50 border border-input focus:border-ring focus:bg-background text-foreground text-sm rounded-xl px-4 py-3 outline-none transition-all"
                       />
                     </div>
@@ -189,17 +212,19 @@ export const Book = () => {
                   Género Literario
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {generos.map((item) => {
-                    const isSelected = formData.genero === item;
+                  {genres.map((item) => {
+                    const isSelected = formData.genre === item.label;
                     return (
                       <Button
-                        variant={isSelected ? 'default' : 'secondary'}
+                        variant={isSelected ? "default" : "secondary"}
                         type="button"
-                        key={item}
-                        onClick={() => setFormData({ ...formData, genero: item })}
-                        className={`rounded-full px-4 py-2 text-xs font-medium transition-all ${isSelected ? 'shadow-sm' : 'hover:bg-accent'}`}
+                        key={item.id}
+                        onClick={() =>
+                          setFormData({ ...formData, genre: item.label })
+                        }
+                        className={`rounded-full px-4 py-2 text-xs font-medium transition-all ${isSelected ? "shadow-sm" : "hover:bg-accent"}`}
                       >
-                        {item}
+                        {item.label}
                       </Button>
                     );
                   })}
@@ -214,7 +239,9 @@ export const Book = () => {
                 <textarea
                   rows={4}
                   value={formData.sinopsis}
-                  onChange={(e) => setFormData({ ...formData, sinopsis: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, sinopsis: e.target.value })
+                  }
                   placeholder="Describe brevemente la trama o por qué este libro es importante para ti..."
                   className="w-full bg-muted/50 border border-input focus:border-ring focus:bg-background text-foreground text-sm rounded-xl p-4 outline-none transition-all placeholder:text-muted-foreground resize-none"
                 />
@@ -225,7 +252,9 @@ export const Book = () => {
             <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Info className="w-4 h-4 text-muted-foreground shrink-0" />
-                <span>Se guardará automáticamente en tu colección personal.</span>
+                <span>
+                  Se guardará automáticamente en tu colección personal.
+                </span>
               </div>
 
               <Button
@@ -236,13 +265,11 @@ export const Book = () => {
                 <BookOpen className="w-4 h-4" />
               </Button>
             </div>
-
           </div>
-
         </form>
       </main>
     </div>
   );
 };
 
-export default Book;
+export default BookPage;

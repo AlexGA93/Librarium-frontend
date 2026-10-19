@@ -34,21 +34,30 @@ export const useLogin = () => {
         throw new AuthError("El servidor no devolvió un token");
       }
 
-      const userResult = await userDataAction(token);
-
-      if (!userResult.data) {
-        throw new AuthError(
-          userResult.message || "El servidor no devolvió los datos del usuario"
-        );
-      }
-
       try {
         localStorage.setItem("token", token);
       } catch {
         throw new AuthError("No se pudo guardar la sesión en este navegador");
       }
 
-      return { token, user: userResult.data };
+      try {
+        const userResult = await userDataAction();
+
+        if (!userResult.data) {
+          throw new AuthError(
+            userResult.message || "El servidor no devolvió los datos del usuario"
+          );
+        }
+
+        return { token, user: userResult.data };
+      } catch (error: unknown) {
+        try {
+          localStorage.removeItem("token");
+        } catch (storageError: unknown) {
+          console.error("No se pudo limpiar el token tras fallar el inicio de sesión.", storageError);
+        }
+        throw error;
+      }
     },
     // * Esta función se dispara antes de que la función de mutación se ejecute, y recibe las mismas variables. Útil para actualizaciones optimistas aplicadas con la esperanza de que la mutación tenga éxito. El valor que devuelve se pasa a onSuccess, onError y onSettled como onMutateResult, que es donde generalmente se revierte una actualización optimista. Si se devuelve una promesa, se espera antes de que se ejecute la función de mutación.
     onMutate: () => {

@@ -14,7 +14,7 @@ export const useUser = () => {
         throw new Error("No hay una sesión activa");
       }
 
-      return userDataAction(token);
+      return userDataAction();
     },
     enabled: Boolean(token),
     retry: false,

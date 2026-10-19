@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       }
 
       try {
-        const response = await userDataAction(token);
+        const response = await userDataAction();
         const user = response.data;
 
         if (!user) {

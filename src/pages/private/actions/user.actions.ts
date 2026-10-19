@@ -9,14 +9,10 @@ import type {
 } from "@/types/user.interface";
 import axios from "axios";
 
-export const userDataAction = async (
-  token: string,
-): Promise<UserAcreditationResult> => {
+export const userDataAction = async (): Promise<UserAcreditationResult> => {
   try {
     // * configuramos y realizamos la peticion
-    const { data: response } = await api.get<UserResponse>("/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data: response } = await api.get<UserResponse>("/auth/me");
     // * reaccionamos al caso de error posible
     if (!response.data) {
       throw new AuthError(
@@ -40,18 +36,15 @@ export const userDataAction = async (
 export const editUserDataAction = async (
   payloadEdit:{
     user: User,
-  userId: number,
-  token: string
+  userId: number
   }
 ): Promise<UserAcreditationResult> => {
-  const { user, userId, token } = payloadEdit;
+  const { user, userId } = payloadEdit;
   try {
 
     const { data } = await api.put<UserResponse>(`/users/${userId}`,
       user,
-      {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    );
     
     return data;
   } catch (error: unknown) {
@@ -67,13 +60,10 @@ export const editUserDataAction = async (
 
 
 export const deleteUserDataAction = async (
-  userId: number,
-  token: string
+  userId: number
 ): Promise<UserDeletionResult> => {
   try {
-    await api.delete(`/users/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.delete(`/users/${userId}`);
 
     return { ok: true };
   } catch {

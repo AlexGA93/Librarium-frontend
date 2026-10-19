@@ -32,7 +32,7 @@ export const PrivateSideBar = ({ isOpen, onClose }: PrivateSideBarProps) => {
     { id: "perfil", label: "Perfil", icon: User, pathName: "/private/profile" },
   ];
 
-  const handleActiveLink = (to: string) => pathname === to;
+  const handleActiveLink = (itemPathName: string) => pathname === itemPathName;
 
   return (
     <>
@@ -86,14 +86,14 @@ export const PrivateSideBar = ({ isOpen, onClose }: PrivateSideBarProps) => {
               onClick={onClose}
               className={`cursor-pointer w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm transition-all duration-150 text-left ${
                 handleActiveLink(item.pathName)
-                  ? "bg-accent text-accent-foreground shadow-sm font-semibold"
+                  ? "bg-brand-coral shadow-sm text-white font-bold"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground font-medium"
               }`}
             >
               <item.icon
                 className={`w-5 h-5 shrink-0 ${
                   handleActiveLink(item.pathName)
-                    ? "text-accent-foreground"
+                    ? "text-white"
                     : "text-muted-foreground"
                 }`}
               />

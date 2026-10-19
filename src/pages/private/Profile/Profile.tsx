@@ -127,7 +127,7 @@ export const Profile = () => {
     }
 
     deleteUser(
-      { userId: user.id, token: state.token },
+      { userId: user.id },
       {
         onSuccess: ({ tokenRemoved }) => {
           if (tokenRemoved) {
@@ -190,7 +190,7 @@ export const Profile = () => {
 
     // * llamamos a al funcion
     editUser(
-      { user: userPayload, userId: user.id, token: state.token! },
+      { user: userPayload, userId: user.id },
       {
         onSuccess: () => {
           setIsEditing(false);
