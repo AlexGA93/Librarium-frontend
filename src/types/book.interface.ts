@@ -23,14 +23,19 @@ export interface Book {
 
 export interface BookInitialState {
   books: Book[] | [];
-  actualBook: Book | null;
   loading: boolean;
   error: string | null;
+  hasLoaded: boolean;
 }
 
 export interface BooksResponse {
   code: number;
   usersBooks: Book[];
+}
+
+export interface DeleteBookResponse {
+  code: number;
+  message: string;
 }
 
 export interface BookMutationResponse {
@@ -83,7 +88,7 @@ export type BookAction =
   | { type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.DELETE_BOOK_START }
   | {
       type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.DELETE_BOOK_SUCCESS;
-      payload: BookMutationResponse;
+      payload: BookMutationResponse | number;
     }
   | {
       type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.DELETE_BOOK_ERROR;

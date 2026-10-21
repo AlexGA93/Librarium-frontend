@@ -3,6 +3,7 @@ import type {
   Book,
   BookApiErrorResponse,
   BooksResponse,
+  DeleteBookResponse,
 } from "@/types/book.interface";
 import axios from "axios";
 import { BookError } from "./errors/book.error";
@@ -46,3 +47,26 @@ export const booksByUser = async ({genres, limit, page}: Options):Promise<Book[]
     );
   }
 };
+
+export const deleteBook = async (bookId: string): Promise<{bookId: string, mssg: string}> => {
+  try {
+    const { data } = await api.delete<DeleteBookResponse>(`/books/${bookId}`);
+
+    if (!data || data.code !== 200) {
+      throw new BookError(data.message)
+    }
+
+    return {bookId, mssg:data.message};
+    
+  } catch (error: unknown) {
+    let statusCode: number | undefined;
+    if (axios.isAxiosError<BookApiErrorResponse>(error)) {
+      statusCode = error!.response?.status;
+    }
+    // * lanzamos la clase del error personalizado
+    throw new BookError(
+      "No se pudo borrar el libro seleccionado",
+      statusCode,
+    );
+  }
+}

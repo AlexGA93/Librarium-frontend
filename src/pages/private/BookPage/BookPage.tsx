@@ -1,9 +1,14 @@
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useBooks } from "@/hooks/useBooks";
+import { useBook } from "@/pages/private/hooks/useBook";
 import type { Book } from "@/types/book.interface";
 import { genres } from "@/utils/constants";
-import { BookOpen, Camera, Info } from "lucide-react";
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { BookOpen, Camera, Info, SquarePen, Trash } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { useDeleteBook } from "../hooks/useDeleteBook";
 
 const getTodayDate = () => {
   const today = new Date();
@@ -13,29 +18,103 @@ const getTodayDate = () => {
   return `${today.getFullYear()}-${month}-${day}`;
 };
 
+const createEmptyBook: Book = {
+  title: "",
+  author: "",
+  releaseDate: "",
+  genre: genres[0].label,
+  sinopsis: "",
+  date: getTodayDate(),
+  coverFile: null,
+};
+
 export const BookPage = () => {
+  const navigate = useNavigate();
+  
+  // * extraemos el id de la url
   const { id } = useParams();
 
-  const bookTopTitle = id === "new" ? "Nueva Adquisición" : "Obra seleccionada";
-  const bookTitle = id === "new" ? "Expandir el Archivo" : "Visualizar Obra";
-  const bookSubtitle =
-    id === "new"
-      ? "Registra una nueva obra en tu biblioteca personal. Cada entrada es un portal a un nuevo mundo de conocimiento."
-      : "Una obra que te pertenece.";
-
-  const [formData, setFormData] = useState<Book>({
-    title: "Libro de Prueba",
-    author: "Autor de Prueba",
-    releaseDate: "2027-01-01",
-    genre: genres[0].label,
-    sinopsis:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus hic reiciendis aliquid, laboriosam ut culpa tenetur, sapiente cumque optio harum ab ad. Accusantium sequi reiciendis, ad delectus qui eligendi officia.",
-    date: getTodayDate(),
-    coverFile: null,
-  });
-
+  // * definimos estados locales
+  const [formData, setFormData] = useState<Book>(createEmptyBook);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // * definicione y transformaciones
+  const isNew = id === "new";
+
+  // * llamados a hooks
+  // llamamos al custom hook para obtener libro -
+  /**
+   * isNew vale true cuando la ruta es /private/book/new.
+   
+   * !isNew invierte ese valor: en una ruta como /private/book/1 vale true; en /private/book/new, vale false.
+   
+   * enabled le indica al hook si debe iniciar la petición de libros. En useBook.tsx, el efecto no hace la petición cuando enabled es false.
+   */
+  const { loading, error, refetch } = useBook({ enabled: !isNew });
+  // llamamos al custom hook del estado global
+  const {
+    state: { books, hasLoaded },
+  } = useBooks();
+  // llamamo al custom hook de borrado de libro
+  const { mutate: deleteBook, isPending } = useDeleteBook();
+
+  // * filtramos posible libro en base al id
+  const actualBook = books.find((book) => book.id === Number(id)) ?? undefined;
+
+  // Evitamos volver a copiar el libro al formulario mientras se edita.
+  const initializedRoute = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!id || initializedRoute.current === id) return;
+
+    if (isNew) {
+      setFormData(createEmptyBook);
+      setPreviewUrl(null);
+      initializedRoute.current = id;
+      return;
+    }
+
+    if (!actualBook) return;
+
+    setFormData({ ...actualBook, coverFile: null });
+    setPreviewUrl(actualBook.coverImage ?? null);
+    initializedRoute.current = id;
+  }, [id, isNew, actualBook]);
+
+  // * comprobaciones varias
+  if (!isNew && !Number.isSafeInteger(Number(id))) {
+    console.log("no es 'new' ni es numerico");
+    return <Navigate to="/private/" />;
+  }
+
+  if (!isNew && (!hasLoaded || loading)) {
+    console.log("no es 'new' ni esta cargando o ha cargado");
+    return (
+      <div className="flex min-h-64 items-center justify-center text-muted-foreground">
+        Cargando libro...
+      </div>
+    );
+  }
+
+  if (!isNew && error) {
+    console.log("no es 'new' si hubiera algun error");
+    return (
+      <div className="space-y-4 p-8 text-center">
+        <p role="alert" className="text-destructive">
+          {error}
+        </p>
+        <Button type="button" onClick={refetch}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
+  if (!isNew && !actualBook) {
+    return <Navigate to="/private/" />;
+  }
+
+  // * FUNCIONES
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
   ) => {
@@ -50,13 +129,37 @@ export const BookPage = () => {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Libro para guardar:", formData);
-    // Lógica para persistir en tu base de datos o almacenamiento local
-    /**
-     * TODO:
-     *  1- llamar a custom hook (mutate)
-     *  2- conecta con action y hace dispatch (estado global de libros)
-     *  3- peticion con axios
-     */
+
+    if (isNew) {
+      console.log("es nuevo")
+      // nuevo libro
+      return;
+    } 
+
+    console.log("existente");
+    // editamos libro existente- peticion con axios
+  };
+
+  const deleteBookFunction = () => {
+    deleteBook(id!, {
+      onSuccess: (response) => {
+         toast.success(response.mssg);
+        navigate("/private");
+      }
+    })
+  }
+  const handleDeleteBook = () => {
+    console.log("BORRAMOS LIBRO con id: " + id);
+    toast("¿Estás seguro de continuar?", {
+      action: {
+        label: "Sí, borrar",
+        onClick: () => void deleteBookFunction(),
+      },
+      cancel: {
+        label: "No",
+        onClick: () => toast.info("Eliminación de libro cancelada"),
+      },
+    });
   };
 
   return (
@@ -66,13 +169,15 @@ export const BookPage = () => {
         {/* Cabecera Editorial */}
         <div className="space-y-2">
           <span className="text-xs font-semibold tracking-wider text-brand-coral uppercase">
-            {bookTopTitle}
+            {isNew ? "Nueva Adquisición" : "Obra seleccionada"}
           </span>
           <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground">
-            {bookTitle}
+            {isNew ? "Expandir el Archivo" : "Visualizar Obra"}
           </h1>
           <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            {bookSubtitle}
+            {isNew
+              ? "Registra una nueva obra en tu biblioteca personal. Cada entrada es un portal a un nuevo mundo de conocimiento."
+              : "Una obra que te pertenece."}
           </p>
         </div>
 
@@ -249,7 +354,7 @@ export const BookPage = () => {
             </div>
 
             {/* Pie del Formulario: Botón de Guardado e Info */}
-            <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="pt-6 border-t border-border flex flex-col items-center justify-between gap-4 ">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Info className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span>
@@ -257,13 +362,40 @@ export const BookPage = () => {
                 </span>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-brand-coral hover:bg-brand-coral/90 text-brand-burgundy hover:text-white px-7 py-5 rounded-2xl font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <span>Guardar en Colección</span>
-                <BookOpen className="w-4 h-4" />
-              </Button>
+              {isNew ? (
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-brand-coral hover:bg-brand-coral/90 text-brand-burgundy hover:text-white px-7 py-5 rounded-2xl font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  <span>Guardar en Colección</span>
+                  <BookOpen className="w-4 h-4" />
+                </Button>
+              ) : (
+                  <div className="flex flex-row flex-wrap justify-center sm:justify-end w-full">
+                    <Button
+                      type="button"
+                      onClick={handleDeleteBook}
+                    className="w-full m-3 sm:w-auto inline-flex items-center justify-center gap-2.5 bg-red-400 hover:bg-red-500 text-brand-burgundy hover:text-white px-7 py-5 rounded-2xl font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      <span>Eliminar Libro</span>
+                      {
+                        isPending ? (
+                        <Spinner />
+                        ): (
+                            <Trash className = "w-4 h-4" />
+                      )
+                      }
+                    
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="w-full m-3 sm:w-auto inline-flex items-center justify-center gap-2.5 bg-blue-400 hover:bg-blue-500 text-brand-burgundy hover:text-white px-7 py-5 rounded-2xl font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  >
+                    <span>Editar Libro</span>
+                    <SquarePen className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </form>

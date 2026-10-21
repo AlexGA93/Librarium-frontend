@@ -22,6 +22,7 @@ export interface Constants {
         // SESSION
         SESSION_RESTORED: "SESSION_RESTORED";
         SESSION_CLEARED: "SESSION_CLEARED";
+        SESSION_EXPIRED: "SESSION_EXPIRED";
       };
     };
   };

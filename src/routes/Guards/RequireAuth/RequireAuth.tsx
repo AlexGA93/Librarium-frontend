@@ -20,6 +20,11 @@ export const RequireAuth = ({ children }: PropsWithChildren) => {
   }
   // * 2 - Si el estado refleja que se ha iniciado sesion, redirigimos
   if (!state.isAuthenticated) {
+    if (state.sessionExpired) {
+      // * EN CASO DE QUE EL USUARIO ESTE AUTENTICADO PERO HATA EXPIRADO, REDIRIGIMOS
+      return <Navigate to="/" replace />;
+    }
+
     return <Navigate to="/auth/login" replace state={{ from: location }} />;
   }
   // * 3- Si no se da otra opcion, navegamos a los hijos

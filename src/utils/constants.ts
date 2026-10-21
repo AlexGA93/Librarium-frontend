@@ -1,4 +1,4 @@
-import type { Genre, GenresObj } from "@/types/book.interface";
+import type { GenresObj } from "@/types/book.interface";
 import type { Constants } from "@/types/utils";
 
 export const constants: Constants = {
@@ -25,6 +25,7 @@ export const constants: Constants = {
         // SESSION
         SESSION_RESTORED: "SESSION_RESTORED",
         SESSION_CLEARED: "SESSION_CLEARED",
+        SESSION_EXPIRED: "SESSION_EXPIRED",
       },
     },
   },
@@ -51,16 +52,16 @@ export const constants: Constants = {
   },
 };
 
-export const colorByGenre: Record<Genre, string> = {
-  Ficcion:
+export const colorByGenre: Record<string, string> = {
+  ficcion:
     "border-rose-200 bg-rose-100 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200",
-  Ensayo:
+  ensayo:
     "border-sky-200 bg-sky-100 text-sky-800 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200",
-  Poesia:
+  poesia:
     "border-violet-200 bg-violet-100 text-violet-800 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-200",
-  Historia:
+  historia:
     "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200",
-  Otros:
+  otros:
     "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
 };
 

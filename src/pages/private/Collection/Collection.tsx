@@ -5,9 +5,22 @@ import { cn } from "cn";
 import { BookOpen, LibraryBig, Plus, RotateCw } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BookCard } from "../components/BookCard/BookCard";
-import { useBook } from "../hooks/useBook";
+import { useBook } from "../hooks/useBook.tsx";
 
 export const Collection = () => {
+  // * 1- Llamamos al custom hook encargado de coordinar la gestion de acciones con las llamadas y nutrir al componente con resultados
+
+
+  // * Extraemos los datos de los que se nutre el componente de un customHook
+  const {books, loading, error, refetch
+  } = useBook();
+
+  // * sacamos las dimensiones en funcion del datos del custom hook
+  const bookCount = books?.length ?? 0;
+
+  // * sacamos la cuenta de los generos pertenecientes dentro del dato del custom hook
+  const genreCount = books ? new Set(books.map((book) => book.genre)).size : 0;
+
   // * accedemos a los parametros de busqueda de la url para operar con los filtros
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -24,22 +37,6 @@ export const Collection = () => {
     { id: 'historia', label: 'Historia' },
     { id: 'otros', label: 'Otros' },
   ]
-
-  // * Extraemos los datos de los que se nutre el componente de un customHook
-  const {
-    data: books,
-    isPending,
-    isError,
-    error,
-    refetch,
-    isFetching,
-  } = useBook();
-
-  // * sacamos las dimensiones en funcion del datos del custom hook
-  const bookCount = books?.length ?? 0;
-
-  // * sacamos la cuenta de los generos pertenecientes dentro del dato del custom hook
-  const genreCount = books ? new Set(books.map((book) => book.genre)).size : 0;
 
   const setGenreParameter = (genre: string) => {
     const newGenres = currentGenres.includes(genre)
@@ -71,6 +68,7 @@ export const Collection = () => {
         </div>
 
         <Button
+          nativeButton={false}
           render={<Link to="/private/book/new" />}
           className="h-11 gap-2 rounded-2xl bg-brand-coral p-5 font-semibold text-brand-burgundy shadow-sm hover:bg-brand-coral/90 hover:text-white"
         >
@@ -101,7 +99,7 @@ export const Collection = () => {
         <div className="relative flex items-center gap-8 border-t border-border pt-5 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
           <div>
             <p className="font-serif text-3xl font-bold text-foreground">
-              {isPending ? "—" : bookCount}
+              {loading ? "—" : bookCount}
             </p>
             <p className="text-xs font-medium text-muted-foreground">
               {bookCount === 1 ? "libro" : "libros"}
@@ -110,7 +108,7 @@ export const Collection = () => {
           <div className="h-10 w-px bg-border" />
           <div>
             <p className="font-serif text-3xl font-bold text-foreground">
-              {isPending ? "—" : genreCount}
+              {loading ? "—" : genreCount}
             </p>
             <p className="text-xs font-medium text-muted-foreground">
               {genreCount === 1 ? "género" : "géneros"}
@@ -129,13 +127,13 @@ export const Collection = () => {
               Tus libros
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isPending
+              {loading
                 ? "Cargando tu colección…"
                 : `${bookCount} ${bookCount === 1 ? "obra guardada" : "obras guardadas"}`}
             </p>
           </div>
 
-          {!isPending && !isError && bookCount > 0 && (
+          {!loading && !error && bookCount > 0 && (
             <span className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
               {bookCount} {bookCount === 1 ? "libro" : "libros"}
             </span>
@@ -155,7 +153,7 @@ export const Collection = () => {
             >{genre.label}</Button>
           ))}
         </div>
-        {isPending ? (
+        {loading ? (
           <div
             role="status"
             className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-card px-6 text-center shadow-sm"
@@ -165,7 +163,7 @@ export const Collection = () => {
               Cargando tu biblioteca…
             </p>
           </div>
-        ) : isError ? (
+        ) : error ? (
           <div
             role="alert"
             className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-3xl border border-destructive/20 bg-card px-6 text-center shadow-sm"
@@ -176,21 +174,19 @@ export const Collection = () => {
                 No se pudo cargar tu colección
               </h3>
               <p className="max-w-md text-sm text-muted-foreground">
-                {error instanceof Error
-                  ? error.message
-                  : "Inténtalo de nuevo en unos instantes."}
+                {error}
               </p>
             </div>
             <Button
               type="button"
               variant="outline"
-              disabled={isFetching}
+              disabled={loading}
               onClick={() => void refetch()}
               className="mt-1 gap-2 rounded-xl"
             >
               <RotateCw
                 aria-hidden="true"
-                className={isFetching ? "animate-spin" : ""}
+                className={loading ? "animate-spin" : ""}
               />
               Reintentar
             </Button>
@@ -210,6 +206,7 @@ export const Collection = () => {
               </p>
             </div>
             <Button
+              nativeButton={false}
               render={<Link to="/private/book/new" />}
               className="mt-2 gap-2 rounded-xl bg-brand-coral px-4 text-brand-burgundy hover:bg-brand-coral/90"
             >

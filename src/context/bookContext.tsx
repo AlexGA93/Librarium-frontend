@@ -1,15 +1,15 @@
 import { booksReducer } from "@/reducers/booksReducer";
 import type {
-    BookContextValue,
-    BookInitialState,
+  BookContextValue,
+  BookInitialState,
 } from "@/types/book.interface";
 import { createContext, useReducer, type PropsWithChildren } from "react";
 
 const initialState: BookInitialState = {
   books: [],
-  actualBook: null,
   loading: false,
   error: null,
+  hasLoaded: false,
 };
 
 export const BookContext = createContext<BookContextValue | undefined>(

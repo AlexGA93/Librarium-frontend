@@ -6,9 +6,9 @@ import { constants } from "@/utils/constants";
 
 export const booksInitialState: BookInitialState = {
   books: [],
-  actualBook: null,
   loading: false,
   error: null,
+  hasLoaded: false,
 };
 
 export const booksReducer = (
@@ -33,14 +33,7 @@ export const booksReducer = (
         books: action.payload,
         loading: false,
         error: null,
-      };
-
-    case constants.BOOK.REDUCERS.ACTION_TYPES.GET_BOOK_DETAILS_SUCCESS:
-      return {
-        ...state,
-        actualBook: action.payload,
-        loading: false,
-        error: null,
+        hasLoaded: true,
       };
 
     case constants.BOOK.REDUCERS.ACTION_TYPES.CREATE_BOOK_SUCCESS:
@@ -54,13 +47,19 @@ export const booksReducer = (
     case constants.BOOK.REDUCERS.ACTION_TYPES.DELETE_BOOK_SUCCESS:
       return {
         ...state,
-        actualBook: null,
+        books: state.books.filter( b => b.id !== action.payload),
         loading: false,
         error: null,
       };
 
     case constants.BOOK.REDUCERS.ACTION_TYPES.GET_BOOKS_ERROR:
-    case constants.BOOK.REDUCERS.ACTION_TYPES.GET_BOOK_DETAILS_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+        hasLoaded: true,
+      };
+
     case constants.BOOK.REDUCERS.ACTION_TYPES.CREATE_BOOK_ERROR:
     case constants.BOOK.REDUCERS.ACTION_TYPES.UPDATE_BOOK_ERROR:
     case constants.BOOK.REDUCERS.ACTION_TYPES.DELETE_BOOK_ERROR:

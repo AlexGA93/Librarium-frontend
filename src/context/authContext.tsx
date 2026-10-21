@@ -21,6 +21,7 @@ const initialState: AuthInitialState = {
   loading: false,
   error: "",
   authReady: false,
+  sessionExpired: false,
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
