@@ -15,7 +15,6 @@ import { editUserDataAction } from "../actions/user.actions";
 interface EditUserVariables {
   user: User;
   userId: number;
-  token: string;
 }
 
 export const useEditUser = () => {

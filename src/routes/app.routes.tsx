@@ -10,7 +10,7 @@ import { RequireAuth } from './Guards/RequireAuth/RequireAuth';
 
 // * lazy load
 const Profile = lazy(() => import("@/pages/private/Profile/Profile"));
-const Book = lazy(() => import("@/pages/private/Book/Book"))
+const BookPage = lazy(() => import("@/pages/private/BookPage/BookPage"))
 
 export const routes = createBrowserRouter([
     // layout publico
@@ -61,7 +61,7 @@ export const routes = createBrowserRouter([
             // book
             {
                 path: 'book/:id',
-                element: <Book />
+                element: <BookPage />
             }
         ]
     },

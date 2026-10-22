@@ -14,6 +14,7 @@ export interface AuthInitialState {
   loading: boolean;
   error: string | null;
   authReady: boolean;
+  sessionExpired: boolean;
 }
 export interface AuthApiErrorResponse {
   message?: string;
@@ -62,6 +63,9 @@ export type AuthAction =
   }
   | {
     type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_CLEARED,
+  }
+  | {
+    type: typeof constants.AUTH.REDUCERS.ACTION_TYPES.SESSION_EXPIRED,
   }
   ;
 

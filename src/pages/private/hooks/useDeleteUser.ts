@@ -6,7 +6,6 @@ import { deleteUserDataAction } from "../actions/user.actions";
 
 interface DeleteUserVariables {
   userId: number;
-  token: string;
 }
 
 interface DeleteUserResult {
@@ -25,11 +24,8 @@ export const useDeleteUser = () => {
   const { dispatch } = useAuth();
 
   return useMutation({
-    mutationFn: async ({
-      userId,
-      token,
-    }: DeleteUserVariables): Promise<DeleteUserResult> => {
-      const result = await deleteUserDataAction(userId, token);
+    mutationFn: async ({ userId }: DeleteUserVariables): Promise<DeleteUserResult> => {
+      const result = await deleteUserDataAction(userId);
 
       if (!result.ok) {
         throw new AuthError(result.message);

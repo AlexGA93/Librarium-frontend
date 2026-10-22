@@ -1,0 +1,170 @@
+import { api } from "@/api/axios";
+import type {
+  Book,
+  BookApiErrorResponse,
+  BooksResponse,
+  DeleteBookResponse,
+  NewBookActionResponse,
+  NewBookResponse,
+  UpdateBookActionResponse,
+  UpdateBookResponse,
+} from "@/types/book.interface";
+import axios from "axios";
+import { BookError } from "./errors/book.error";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+interface Options{
+  genres?: string | undefined;
+  limit: string;
+  page: string;
+}
+
+// Books by user
+export const booksByUser = async ({genres, limit, page}: Options):Promise<Book[]> => {
+  try {
+    const { data } = await api.get<BooksResponse>("/books/all", {
+        params: {genres, limit, page}
+      });
+      
+    if (!data || !Array.isArray(data.usersBooks)) {
+      throw new BookError(
+        "El servidor devolvió una respuesta de libros no válida",
+      );
+    }
+      
+      const userBooks: Book[] = data.usersBooks.map((book) => ({
+          ...book,
+          coverImage: `${BASE_URL}/books-images/${book.cover}`
+      }));
+    
+    return userBooks;
+      
+  } catch (error: unknown) {
+    let statusCode: number | undefined;
+    if (axios.isAxiosError<BookApiErrorResponse>(error)) {
+      statusCode = error!.response?.status;
+    }
+    // * lanzamos la clase del error personalizado
+    throw new BookError(
+      "No se pudieron obtener los datos del usuario",
+      statusCode,
+    );
+  }
+};
+
+// Register new Book
+export const newBook = async ({bookInfo}:{ bookInfo: Book }): Promise<NewBookActionResponse> => {
+  try {
+    const formData = new FormData();
+    formData.append(
+      "data",
+      JSON.stringify({
+        title: bookInfo.title,
+        author: bookInfo.author,
+        releaseDate: bookInfo.releaseDate,
+        genre: bookInfo.genre,
+        sinopsis: bookInfo.sinopsis,
+        date: bookInfo.date,
+      }),
+    );
+
+    if (bookInfo.coverFile) {
+      formData.append("file", bookInfo.coverFile);
+    }
+
+    const { data } = await api.post<NewBookResponse>("/books/new", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (!data || data.code !== 200) {
+      throw new BookError(data.message)
+    }
+
+    return {mssg:data.message, bookData: bookInfo}; 
+    
+  } catch (error: unknown) {
+    let statusCode: number | undefined;
+    if (axios.isAxiosError<BookApiErrorResponse>(error)) {
+      statusCode = error!.response?.status;
+    }
+    // * lanzamos la clase del error personalizado
+    throw new BookError(
+      "No se pudo registrar el libro",
+      statusCode,
+    );
+  }
+} 
+
+// Update a Book
+export const updateBook = async ({bookId, bookInfo}:{ bookId: string,bookInfo: Book }): Promise<UpdateBookActionResponse> => {
+  try {
+    const formData = new FormData();
+    formData.append(
+      "data",
+      JSON.stringify({
+        title: bookInfo.title,
+        author: bookInfo.author,
+        releaseDate: bookInfo.releaseDate,
+        genre: bookInfo.genre,
+        sinopsis: bookInfo.sinopsis,
+        date: bookInfo.date,
+      }),
+    );
+
+    if (bookInfo.coverFile) {
+      formData.append("file", bookInfo.coverFile);
+    }
+
+    const { data } = await api.put<UpdateBookResponse>(`/books/${bookId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (!data || data.code !== 200) {
+      throw new BookError(data.message)
+    }
+
+    return {mssg:data.message, bookData: bookInfo}; 
+    
+  } catch (error: unknown) {
+    let statusCode: number | undefined;
+    if (axios.isAxiosError<BookApiErrorResponse>(error)) {
+      statusCode = error!.response?.status;
+    }
+    // * lanzamos la clase del error personalizado
+    throw new BookError(
+      "No se pudo registrar el libro",
+      statusCode,
+    );
+  }
+} 
+
+// Delete a Book
+export const deleteBook = async (bookId: string): Promise<{bookId: string, mssg: string}> => {
+  try {
+    const { data } = await api.delete<DeleteBookResponse>(`/books/${bookId}`);
+
+    if (!data || data.code !== 200) {
+      throw new BookError(data.message)
+    }
+
+    return {bookId, mssg:data.message};
+    
+  } catch (error: unknown) {
+    let statusCode: number | undefined;
+    if (axios.isAxiosError<BookApiErrorResponse>(error)) {
+      statusCode = error!.response?.status;
+    }
+    // * lanzamos la clase del error personalizado
+    throw new BookError(
+      "No se pudo borrar el libro seleccionado",
+      statusCode,
+    );
+  }
+}
+
+// export const editBook = ({ bokkId: string, }) => { };
