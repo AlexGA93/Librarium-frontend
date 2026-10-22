@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useDeleteBook } from "../hooks/useDeleteBook";
+import { useEditBook } from "../hooks/useEditBook";
+import { useNewBook } from "../hooks/useNewBook";
 
 const getTodayDate = () => {
   const today = new Date();
@@ -19,11 +21,11 @@ const getTodayDate = () => {
 };
 
 const createEmptyBook: Book = {
-  title: "",
-  author: "",
-  releaseDate: "",
+  title: "ejemplo",
+  author: "ejemplo",
+  releaseDate: "2026-01-01",
   genre: genres[0].label,
-  sinopsis: "",
+  sinopsis: "ejemplo",
   date: getTodayDate(),
   coverFile: null,
 };
@@ -55,8 +57,12 @@ export const BookPage = () => {
   const {
     state: { books, hasLoaded },
   } = useBooks();
+  // lamamos al custom hook de registro de libro
+  const { mutate: registerBook, isPending: isPendingRegister } = useNewBook();
+  // llamamos al custom hook de actualizacion de libro
+  const { mutate: updateBook, isPending: isPendingUpdate } = useEditBook();
   // llamamo al custom hook de borrado de libro
-  const { mutate: deleteBook, isPending } = useDeleteBook();
+  const { mutate: deleteBook, isPending: isPendingDelete } = useDeleteBook();
 
   // * filtramos posible libro en base al id
   const actualBook = books.find((book) => book.id === Number(id)) ?? undefined;
@@ -131,13 +137,25 @@ export const BookPage = () => {
     console.log("Libro para guardar:", formData);
 
     if (isNew) {
-      console.log("es nuevo")
+      console.log("es nuevo");
       // nuevo libro
+      registerBook({bookInfo: formData}, {
+        onSuccess: (response) => {
+          toast.success(response.mssg);
+        navigate("/private");
+        }
+      })
       return;
     } 
 
     console.log("existente");
     // editamos libro existente- peticion con axios
+    updateBook({bookId: id!, bookInfo: formData}, {
+      onSuccess: (response) => {
+        toast.success(response.mssg);
+        navigate("/private");
+      }
+    })
   };
 
   const deleteBookFunction = () => {
@@ -379,7 +397,7 @@ export const BookPage = () => {
                     >
                       <span>Eliminar Libro</span>
                       {
-                        isPending ? (
+                        (isPendingDelete || isPendingRegister)? (
                         <Spinner />
                         ): (
                             <Trash className = "w-4 h-4" />

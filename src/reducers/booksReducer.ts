@@ -1,4 +1,5 @@
 import type {
+  Book,
   BookAction,
   BookInitialState,
 } from "@/types/book.interface";
@@ -9,6 +10,10 @@ export const booksInitialState: BookInitialState = {
   loading: false,
   error: null,
   hasLoaded: false,
+};
+
+export const updateBookHandler = (newBook: Book, books: Book[]): Book[] => {
+  return books.map(book => book.id === newBook.id ? newBook:book)
 };
 
 export const booksReducer = (
@@ -37,9 +42,17 @@ export const booksReducer = (
       };
 
     case constants.BOOK.REDUCERS.ACTION_TYPES.CREATE_BOOK_SUCCESS:
+      return {
+        ...state,
+        books: [...state.books, action.payload],
+        //books: state.books.push(action.payload),
+        loading: false,
+        error: null,
+      };
     case constants.BOOK.REDUCERS.ACTION_TYPES.UPDATE_BOOK_SUCCESS:
       return {
         ...state,
+        books: updateBookHandler(action.payload, state.books),
         loading: false,
         error: null,
       };

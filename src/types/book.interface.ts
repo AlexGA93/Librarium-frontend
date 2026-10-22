@@ -21,6 +21,12 @@ export interface Book {
   date: string;
 }
 
+
+interface BaseResponse {
+  code: number;
+  message: string;
+}
+
 export interface BookInitialState {
   books: Book[] | [];
   loading: boolean;
@@ -33,14 +39,19 @@ export interface BooksResponse {
   usersBooks: Book[];
 }
 
-export interface DeleteBookResponse {
-  code: number;
-  message: string;
+export type BookMutationResponse = BaseResponse;
+export type NewBookResponse = BaseResponse;
+export type UpdateBookResponse = BaseResponse;
+export type DeleteBookResponse = BaseResponse;
+
+export interface NewBookActionResponse {
+  mssg: string;
+  bookData: Book;
 }
 
-export interface BookMutationResponse {
-  code: number;
-  message: string;
+export interface UpdateBookActionResponse {
+  mssg: string;
+  bookData: Book;
 }
 
 export type BookAction =
@@ -68,7 +79,7 @@ export type BookAction =
   | { type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.CREATE_BOOK_START }
   | {
       type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.CREATE_BOOK_SUCCESS;
-      payload: BookMutationResponse;
+      payload: Book;
     }
   | {
       type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.CREATE_BOOK_ERROR;
@@ -78,7 +89,7 @@ export type BookAction =
   | { type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.UPDATE_BOOK_START }
   | {
       type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.UPDATE_BOOK_SUCCESS;
-      payload: BookMutationResponse;
+      payload: Book;
     }
   | {
       type: typeof constants.BOOK.REDUCERS.ACTION_TYPES.UPDATE_BOOK_ERROR;

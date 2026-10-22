@@ -220,8 +220,8 @@ export const Collection = () => {
             className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           >
             {/* Libros */}
-            {books.map((book) => (
-              <BookCard key={book.title} book={book} />
+            {books.map((book, id) => (
+              <BookCard key={`${book.title}-${id}`} book={book} />
             ))}
           </div>
         )}
